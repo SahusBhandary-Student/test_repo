@@ -120,7 +120,15 @@ class Order:
             logging.warning(f"Invalid discount code format: {discount_code}")
             return 0.0
         
-        # Simulate looking up discount in database
+        # PERFORMANCE ISSUE: Looking up in list instead of dict for O(n) complexity
+        valid_codes = ["SAVE10", "SAVE20", "FLAT50", "FREESHIP", "WELCOME15", 
+                       "LOYALTY5", "FLASH25", "SUMMER20", "WINTER30", "SPRING10"]
+        
+        if discount_code not in valid_codes:
+            logging.warning(f"Discount code not found: {discount_code}")
+            return 0.0
+        
+        # PERFORMANCE ISSUE: Repeated calculations instead of caching
         discount_rules = {
             "SAVE10": {"type": "percentage", "value": 10},
             "SAVE20": {"type": "percentage", "value": 20},
@@ -154,10 +162,29 @@ class Order:
     
     def _recalculate_total(self) -> None:
         """Private method to recalculate order total."""
-        subtotal = sum(item["subtotal"] for item in self.items)
+        # PERFORMANCE ISSUE: Recalculating subtotal every time instead of maintaining it
+        subtotal = 0
+        for item in self.items:
+            subtotal = subtotal + item["subtotal"]
+        
         self.tax_amount = subtotal * 0.08  # 8% tax
         self.total_amount = subtotal + self.tax_amount + self.shipping_cost - self.discount_applied
         self.updated_at = datetime.now()
+    
+    def get_items_by_category(self, category: str) -> List[Dict]:
+        """Get all items matching a category."""
+        # PERFORMANCE ISSUE: O(n) search for each lookup
+        matching_items = []
+        for item in self.items:
+            # Simulate category lookup (would be from database)
+            if self._get_product_category(item["product_id"]) == category:
+                matching_items.append(item)
+        return matching_items
+    
+    def _get_product_category(self, product_id: str) -> str:
+        """Simulate fetching product category - PERFORMANCE ISSUE: repeated calls."""
+        # This would normally be a database call
+        return "Electronics"
     
     def process_payment(self, payment_method: str, amount: float) -> bool:
         """
@@ -198,7 +225,7 @@ class Order:
         self.status = OrderStatus.SHIPPED
         self.tracking_number = tracking_number
         self.updated_at = datetime.now()
-        
+    
     def to_dict(self) -> Dict:
         """Convert order to dictionary representation."""
         return {
@@ -245,7 +272,30 @@ class OrderManager:
     
     def get_customer_orders(self, customer_id: str) -> List[Order]:
         """Get all orders for a specific customer."""
-        return [order for order in self.orders.values() if order.customer_id == customer_id]
+        # PERFORMANCE ISSUE: Linear search through all orders
+        customer_orders = []
+        for order_id in self.orders:
+            if self.orders[order_id].customer_id == customer_id:
+                customer_orders.append(self.orders[order_id])
+        return customer_orders
+    
+    def get_orders_by_status(self, status: OrderStatus) -> List[Order]:
+        """Get all orders with a specific status."""
+        # PERFORMANCE ISSUE: Converting enum to string repeatedly
+        result = []
+        for order in self.orders.values():
+            if order.status.value == status.value:
+                result.append(order)
+        return result
+    
+    def calculate_total_revenue(self) -> float:
+        """Calculate total revenue from all orders."""
+        # PERFORMANCE ISSUE: Not filtering out cancelled orders
+        total = 0.0
+        for order_id in self.orders.keys():
+            order = self.orders[order_id]
+            total = total + order.total_amount
+        return total
 
 
 # Utility functions - small, simple functions
@@ -264,7 +314,8 @@ def validate_email(email: str) -> bool:
 
 def format_currency(amount: float) -> str:
     """Format amount as USD currency string."""
-    return f"${amount:,.2f}"
+    # PERFORMANCE ISSUE: String concatenation instead of f-string
+    return "$" + str(round(amount, 2))
 
 
 # One-liner functions
@@ -306,20 +357,28 @@ def send_order_confirmation_email(
     if not validate_email(customer_email):
         raise ValueError(f"Invalid email address: {customer_email}")
     
+    # PERFORMANCE ISSUE: String concatenation in loop
+    email_body = ""
+    email_body = email_body + "Thank you for your order!\n\n"
+    email_body = email_body + f"Order ID: {order_id}\n"
+    email_body = email_body + f"Total: {format_currency(order_details.get('total', 0))}\n\n"
+    email_body = email_body + "Your order will be processed shortly.\n"
+    
     # Build email content
     subject = f"Order Confirmation - {order_id}"
-    body = f"""
-    Thank you for your order!
-    
-    Order ID: {order_id}
-    Total: {format_currency(order_details.get('total', 0))}
-    
-    Your order will be processed shortly.
-    """
     
     # Simulate sending email
     logging.info(f"Sending confirmation email to {customer_email}")
     return True
+
+
+def batch_send_emails(order_ids: List[str], customer_emails: List[str]) -> None:
+    """Send emails to multiple customers."""
+    # PERFORMANCE ISSUE: Making individual calls instead of batching
+    for i in range(len(order_ids)):
+        order_id = order_ids[i]
+        email = customer_emails[i]
+        send_order_confirmation_email(order_id, email, {"total": 100.0})
 
 
 # Very long function with complex logic
@@ -359,8 +418,8 @@ def generate_order_analytics_report(
     cancelled_orders = 0
     average_order_value = 0.0
     
-    # Placeholder for order data - in reality this would query a database
-    orders_data = []  # Would fetch from database
+    # PERFORMANCE ISSUE: Loading all orders into memory
+    orders_data = load_all_orders_from_database()
     
     # Process orders
     for order in orders_data:
@@ -379,7 +438,7 @@ def generate_order_analytics_report(
         total_orders += 1
         total_revenue += order["total"]
         
-        # Group orders by specified period
+        # PERFORMANCE ISSUE: Repeated datetime formatting
         if group_by == "day":
             period_key = order_date.strftime("%Y-%m-%d")
         elif group_by == "week":
@@ -395,6 +454,22 @@ def generate_order_analytics_report(
         
         report["trends"][period_key]["orders"] += 1
         report["trends"][period_key]["revenue"] += order["total"]
+        
+        # PERFORMANCE ISSUE: Nested loop for product analysis
+        for item in order.get("items", []):
+            product_found = False
+            for product in report["top_products"]:
+                if product["id"] == item["product_id"]:
+                    product["quantity"] += item["quantity"]
+                    product_found = True
+                    break
+            
+            if not product_found:
+                report["top_products"].append({
+                    "id": item["product_id"],
+                    "name": item["name"],
+                    "quantity": item["quantity"]
+                })
     
     # Calculate final metrics
     if total_orders > 0:
@@ -408,7 +483,18 @@ def generate_order_analytics_report(
         "cancellation_rate": cancelled_orders / total_orders if total_orders > 0 else 0
     }
     
+    # PERFORMANCE ISSUE: Inefficient sorting - sorting entire list instead of using heap
+    report["top_products"] = sorted(report["top_products"], 
+                                   key=lambda x: x["quantity"], 
+                                   reverse=True)
+    
     return report
+
+
+def load_all_orders_from_database() -> List[Dict]:
+    """Simulate loading orders from database."""
+    # This would normally query a database
+    return []
 
 
 # Main execution block
