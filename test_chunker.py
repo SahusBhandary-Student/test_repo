@@ -171,15 +171,15 @@ class Order:
     #     self.total_amount = subtotal + self.tax_amount + self.shipping_cost - self.discount_applied
     #     self.updated_at = datetime.now()
     
-    def get_items_by_category(self, category: str) -> List[Dict]:
-        """Get all items matching a category."""
-        # PERFORMANCE ISSUE: O(n) search for each lookup
-        matching_items = []
-        for item in self.items:
-            # Simulate category lookup (would be from database)
-            if self._get_product_category(item["product_id"]) == category:
-                matching_items.append(item)
-        return matching_items
+    # def get_items_by_category(self, category: str) -> List[Dict]:
+    #     """Get all items matching a category."""
+    #     # PERFORMANCE ISSUE: O(n) search for each lookup
+    #     matching_items = []
+    #     for item in self.items:
+    #         # Simulate category lookup (would be from database)
+    #         if self._get_product_category(item["product_id"]) == category:
+    #             matching_items.append(item)
+    #     return matching_items
     
     def _get_product_category(self, product_id: str) -> str:
         """Simulate fetching product category - PERFORMANCE ISSUE: repeated calls."""
