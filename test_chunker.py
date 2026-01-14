@@ -160,16 +160,16 @@ class Order:
         logging.info(f"Discount {discount_code} applied: ${discount_amount:.2f}")
         return discount_amount
     
-    def _recalculate_total(self) -> None:
-        """Private method to recalculate order total."""
-        # PERFORMANCE ISSUE: Recalculating subtotal every time instead of maintaining it
-        subtotal = 0
-        for item in self.items:
-            subtotal = subtotal + item["subtotal"]
+    # def _recalculate_total(self) -> None:
+    #     """Private method to recalculate order total."""
+    #     # PERFORMANCE ISSUE: Recalculating subtotal every time instead of maintaining it
+    #     subtotal = 0
+    #     for item in self.items:
+    #         subtotal = subtotal + item["subtotal"]
         
-        self.tax_amount = subtotal * 0.08  # 8% tax
-        self.total_amount = subtotal + self.tax_amount + self.shipping_cost - self.discount_applied
-        self.updated_at = datetime.now()
+    #     self.tax_amount = subtotal * 0.08  # 8% tax
+    #     self.total_amount = subtotal + self.tax_amount + self.shipping_cost - self.discount_applied
+    #     self.updated_at = datetime.now()
     
     def get_items_by_category(self, category: str) -> List[Dict]:
         """Get all items matching a category."""
