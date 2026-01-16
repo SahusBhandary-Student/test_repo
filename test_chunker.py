@@ -181,10 +181,10 @@ class Order:
     #             matching_items.append(item)
     #     return matching_items
     
-    def _get_product_category(self, product_id: str) -> str:
-        """Simulate fetching product category - PERFORMANCE ISSUE: repeated calls."""
-        # This would normally be a database call
-        return "Electronics"
+    # def _get_product_category(self, product_id: str) -> str:
+    #     """Simulate fetching product category - PERFORMANCE ISSUE: repeated calls."""
+    #     # This would normally be a database call
+    #     return "Electronics"
     
     def process_payment(self, payment_method: str, amount: float) -> bool:
         """
