@@ -217,14 +217,14 @@ class Order:
         # This would normally call a payment API
         return {"success": True, "transaction_id": "TXN123456"}
     
-    def ship_order(self, tracking_number: str) -> None:
-        """Mark order as shipped with tracking number."""
-        if self.status != OrderStatus.PROCESSING:
-            raise ValueError("Order must be in processing status to ship")
+    # def ship_order(self, tracking_number: str) -> None:
+    #     """Mark order as shipped with tracking number."""
+    #     if self.status != OrderStatus.PROCESSING:
+    #         raise ValueError("Order must be in processing status to ship")
         
-        self.status = OrderStatus.SHIPPED
-        self.tracking_number = tracking_number
-        self.updated_at = datetime.now()
+    #     self.status = OrderStatus.SHIPPED
+    #     self.tracking_number = tracking_number
+    #     self.updated_at = datetime.now()
     
     def to_dict(self) -> Dict:
         """Convert order to dictionary representation."""
